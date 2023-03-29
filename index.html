@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js实现轮播特效</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .carousel {
+            width: 800px;
+            height: 500px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            display: inline-flex;
+            transition: transform 1s;
+            cursor: pointer;
+        }
+
+        .container img {
+            width: 800px;
+            height: auto;
+        }
+
+        .dots {
+            position: absolute;
+            width: 100%;
+            bottom: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dots li {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666666;
+            list-style: none;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .dots li.active {
+            background: #fff;
+        }
+
+        .angle {
+            position: absolute;
+            font-size: 30px;
+            color: #fff;
+            height: 36px;
+            top: calc(50% - 18px);
+            cursor: pointer;
+        }
+
+        .left {
+            left: 10px;
+        }
+
+        .right {
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel">
+        <div class="container"></div>
+        <div class="dots"></div>
+        <div class="left angle" data-type="left">left</div>
+        <div class="right angle" data-type="right">right</div>
+    </div>
+    <script>
+        // 存放图片的容器
+        const containerDiv = document.querySelector(".container");
+        // 存放点的容器
+        const dotsDiv = document.querySelector(".dots");
+        class Carousel {
+            constructor() {
+                this.imgArr = ['1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg'];
+                this.currentActiveIndex = 0;
+                this.timeout = null;
+                this.init();
+            }
+
+            // 开始渲染img
+            init = () => {
+                const imgsFrag = document.createDocumentFragment();
+                const dotsFrag = document.createDocumentFragment();
+                this.imgArr.forEach((item, index) => {
+                    const img = document.createElement("img");
+                    img.setAttribute("src", item);
+                    imgsFrag.appendChild(img);
+
+                    const dot = document.createElement("li");
+                    dot.setAttribute("data-index", index);
+                    dot.setAttribute("data-type", "dot");
+                    dotsFrag.appendChild(dot);
+                })
+
+                containerDiv.appendChild(imgsFrag);
+                dotsDiv.appendChild(dotsFrag);
+                
+                this.changeStyle();
+
+                this.startTime();
+
+                document.addEventListener("click", this.clickHandle);
+                containerDiv.addEventListener("mouseenter", this.clearTime);
+                containerDiv.addEventListener("mouseleave", this.startTime);
+            }
+
+            startTime = () => {
+                this.timeout = setInterval(this.next, 3000);
+            }
+
+            clearTime = () => {
+                this.timeout && clearInterval(this.timeout);
+            }
+
+            clickHandle = (e) => {
+                const { index, type } = e.target.dataset;
+                if (type === 'dot') {
+                    this.select(index);
+                }else if(type === "left") {
+                    this.pre();
+                }else if(type === 'right') {
+                    this.next();
+                }
+            }
+
+            //点击选择当前轮播图
+            select = (index) => {
+                this.currentActiveIndex = index;
+                this.changeStyle();
+                return this.currentActiveIndex;
+            }
+
+            // pre前一个轮播图
+            pre = () => {
+                // 判断如果当前轮播index为0的情况下，pre的前一个就是imgArr数组中的最后一个
+                const len = this.imgArr.length;
+                if (this.currentActiveIndex <= 0) this.currentActiveIndex = len - 1;
+                else this.currentActiveIndex--;
+                this.changeStyle();
+                return this.currentActiveIndex;
+            }
+
+            // next后一个轮播图
+            next = () => {
+                const len = this.imgArr.length;
+                // 判断如果当前轮播index是最后一个，那下一个就从0开始轮播
+                if (this.currentActiveIndex >= len - 1) this.currentActiveIndex = 0;
+                else this.currentActiveIndex++;
+                this.changeStyle();
+                return this.currentActiveIndex;
+            }
+
+            changeStyle = () => {
+                containerDiv.setAttribute("style", `transform: translateX(-${this.currentActiveIndex * 800}px)`);
+
+                const activeDot = dotsDiv.querySelector(".active");
+                if (activeDot) activeDot.classList.remove("active");
+                dotsDiv.children[this.currentActiveIndex].classList.add("active")
+            }
+        }
+
+        const carouselApply = new Carousel();
+    </script>
+</body>
+</html>
